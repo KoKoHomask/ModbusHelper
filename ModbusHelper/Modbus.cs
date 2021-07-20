@@ -42,18 +42,59 @@ namespace ModbusHelper
             checkandinsert(roReg, ReadOnlyReg);
             checkandinsert(rwReg, ReadWriteReg);
         }
-
+        private byte[] processModbusTcp(byte[] cmd,out bool isModbusTcp,out int iD)
+        {
+            isModbusTcp = false;
+            iD = 0;
+            if (cmd.Length < 6)
+                return cmd;
+            
+            if(cmd[2]==0x00&&cmd[3]==0x00)
+            { 
+                iD = cmd[0] * 256 + cmd[1];
+                int tmpLen = cmd[4] * 256 + cmd[5];
+                if (cmd.Length != tmpLen + 6)
+                    return cmd;
+                byte[] tmpArray = new byte[tmpLen];
+                Array.Copy(cmd, 6, tmpArray, 0, tmpLen);
+                isModbusTcp = true;
+                return tmpArray;
+            }
+            return cmd;
+        }
+        private byte[] modbusBackArrayProcess(bool isModbusTcp,byte[] _recieveData,int id)
+        {
+            if (!isModbusTcp)
+                return _recieveData;
+            var idTmp = BitConverter.GetBytes((UInt16)id);
+            var lenTmp = BitConverter.GetBytes((ushort)(_recieveData.Length - 2));
+            byte[] backArray = new byte[6 + _recieveData.Length - 2];
+            backArray[0] = idTmp[1];
+            backArray[1] = idTmp[0];
+            backArray[4] = lenTmp[1];
+            backArray[5] = lenTmp[0];
+            Array.Copy(_recieveData, 0, backArray, 6, _recieveData.Length - 2);
+            return backArray;
+        }
         /// <summary>
         /// 处理接收事件
         /// </summary>
         /// <param name="cmd"></param>
-        public byte[] ProcessRecieveCmd(byte[] cmd)
+        public byte[] ProcessRecieveCmd(byte[] _cmd)
         {
+            bool isModbusTcp;
+            int id;
+            var cmd = processModbusTcp(_cmd,out isModbusTcp,out id);
             if (cmd[0] != ModbusId) return null;//modbus 地址错误
-            var crc = CRCHelper.CRC16(cmd, cmd.Length - 2);
-            if (cmd[cmd.Length - 1] != crc[0] ||//crc错误
-                 cmd[cmd.Length - 2] != crc[1])
-                return null;
+            byte[] crc;
+            if(!isModbusTcp)
+            {
+                crc = CRCHelper.CRC16(cmd, cmd.Length - 2);
+                if (cmd[cmd.Length - 1] != crc[0] ||//crc错误
+                     cmd[cmd.Length - 2] != crc[1])
+                    return null;
+            }
+            
             if (cmd[1] == 0x03 || cmd[1] == 0x04)
             {
                 List<AtomModel> srcLst = ReadWriteReg;
@@ -66,7 +107,7 @@ namespace ModbusHelper
                 }
                 var modbusRegLen = srcLst[srcLst.Count - 1].RegAddress + srcLst[srcLst.Count - 1].ModbusLen;
                 if (startReg + len > modbusRegLen)//超出范围
-                    return backError((byte)(0x80 | cmd[1]), 0x02);
+                    return modbusBackArrayProcess(isModbusTcp, backError((byte)(0x80 | cmd[1]), 0x02), id);
                 var dataArray = getDataFromReg(srcLst, startReg, len);
                 byte[] rebackArray = new byte[len * 2 + 5];
                 rebackArray[0] = ModbusId;
@@ -76,21 +117,21 @@ namespace ModbusHelper
                 crc = CRCHelper.CRC16(rebackArray, rebackArray.Length - 2);
                 rebackArray[rebackArray.Length - 1] = crc[0];
                 rebackArray[rebackArray.Length - 2] = crc[1];
-                return rebackArray;
+                return modbusBackArrayProcess(isModbusTcp, rebackArray, id);
             }
 
             if (cmd[1] == 0x06)//写单个40寄存器
-                return modbus06(cmd);
+                return modbusBackArrayProcess(isModbusTcp, modbus06(cmd,isModbusTcp), id);
             if (cmd[1] == 0x10)//写连续40寄存器
-                return modbus10(cmd);
+                return modbusBackArrayProcess(isModbusTcp, modbus10(cmd,isModbusTcp), id);
 
             return null;
         }
-        private byte[] modbus10(byte[] UBUFP)
+        private byte[] modbus10(byte[] UBUFP,bool isModbusTcp)
         {
             ushort startRegAdd = (ushort)(UBUFP[2] * 256 + UBUFP[3] + 40001);
             ushort modbusLen = (ushort)(UBUFP[4] * 256 + UBUFP[5]);
-            if (UBUFP.Length < 9 + modbusLen * 2)
+            if (!isModbusTcp&& UBUFP.Length < 9 + modbusLen * 2)
                 return backError((byte)(UBUFP[1] | 0x80), 0x01);//数据包长度不合法
             if(startRegAdd+modbusLen> ReadWriteReg[ReadWriteReg.Count - 1].RegAddress + ReadWriteReg[ReadWriteReg.Count - 1].ModbusLen)
                 return backError((byte)(UBUFP[1] | 0x80), 0x02);//范围有误
@@ -119,7 +160,7 @@ namespace ModbusHelper
             return rebackArray;
 
         }
-        private byte[] modbus06(byte[] UBUFP)
+        private byte[] modbus06(byte[] UBUFP, bool isModbusTcp)
         {
             ushort temp16 = (ushort)(UBUFP[2] * 256 + UBUFP[3] + 40001);
             if (temp16 > ReadWriteReg[ReadWriteReg.Count - 1].RegAddress)
