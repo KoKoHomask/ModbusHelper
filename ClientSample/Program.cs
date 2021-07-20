@@ -62,11 +62,11 @@ namespace ClientSample
         }
         static async Task<ModbusStatus> setValueCallback(AtomModel atom)
         {
-            //if (atom.RegAddress == 40006)
-            //{
-            //    atom.BackToLastData();
-            //    return ModbusStatus.ERR; 
-            //}
+            if (atom.RegAddress == 40006)
+            {
+                atom.BackToLastData();
+                return ModbusStatus.ERR;
+            }
             Console.WriteLine(atom.RegAddress +":"+ atom.Name + "has changed");
             return ModbusStatus.OK;
         }
