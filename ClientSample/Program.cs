@@ -19,6 +19,7 @@ namespace ClientSample
                 new AtomModel(){Name="222",RegAddress=40002, BitOrder= BITORDER.ABCD,setValueEventhandler=setValueCallback},
                 new AtomModel(){ Name="333", RegAddress=40004, BitOrder= BITORDER.ABCD,setValueEventhandler=setValueCallback},
                 new AtomModel(){Name="444",RegAddress=40006, BitOrder= BITORDER.ABCD,setValueEventhandler=setValueCallback},
+                new AtomModel(){Name="double test",RegAddress=40008, BitOrder= BITORDER.ABCDEFGH,setValueEventhandler=setValueCallback},
                 new AtomModel(){Name="end",RegAddress=49999, BitOrder= BITORDER.A},
                 new AtomModel(){Name="333",RegAddress=30001, BitOrder= BITORDER.A },
             };
@@ -61,12 +62,12 @@ namespace ClientSample
         }
         static async Task<ModbusStatus> setValueCallback(AtomModel atom)
         {
-            if (atom.RegAddress == 40006)
-            {
-                atom.BackToLastData();
-                return ModbusStatus.ERR; 
-            }
-            Console.WriteLine(atom.RegAddress + atom.Name + "has changed");
+            //if (atom.RegAddress == 40006)
+            //{
+            //    atom.BackToLastData();
+            //    return ModbusStatus.ERR; 
+            //}
+            Console.WriteLine(atom.RegAddress +":"+ atom.Name + "has changed");
             return ModbusStatus.OK;
         }
     }

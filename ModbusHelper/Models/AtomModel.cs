@@ -166,9 +166,10 @@ namespace ModbusHelper.Models
             Array.Copy(dataArray, lastDataArray, dataArray.Length);
             for (int i = 0; i < dataLen; i++)
             {
-                if (i + memAddStart <= MemAdd + DataMemLen)
+                if (i + memAddStart < MemAdd + DataMemLen)
                 {
                     int idx = i + memAddStart - MemAdd;
+                    if (idx < 0) continue;
                     dataArray[idx] = datas[i];
                 }
             }
