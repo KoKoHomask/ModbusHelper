@@ -21,7 +21,11 @@ namespace ClientSample
                 new AtomModel(){Name="444",RegAddress=40006, BitOrder= BITORDER.ABCD,setValueEventhandler=setValueCallback},
                 new AtomModel(){Name="double test",RegAddress=40008, BitOrder= BITORDER.ABCDEFGH,setValueEventhandler=setValueCallback},
                 new AtomModel(){Name="end",RegAddress=49999, BitOrder= BITORDER.A},
-                new AtomModel(){Name="333",RegAddress=30001, BitOrder= BITORDER.A },
+                new AtomModel(){Name="3331",RegAddress=30001, BitOrder= BITORDER.A },
+                new AtomModel(){Name="3332",RegAddress=30002, BitOrder= BITORDER.A },
+                new AtomModel(){Name="3333",RegAddress=30003, BitOrder= BITORDER.A },
+                new AtomModel(){Name="3334",RegAddress=30004, BitOrder= BITORDER.A },
+                new AtomModel(){Name="3335",RegAddress=30005, BitOrder= BITORDER.A },
             };
 
             modbus.InitModbusReg(lst);
