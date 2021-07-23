@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using ModbusHelper.Models;
+using ModbusHelper;
 namespace ClientSample
 {
     class Program
@@ -29,13 +30,15 @@ namespace ClientSample
             };
 
             modbus.InitModbusReg(lst);
-
+            
             TcpListener listener = new TcpListener(12345);
             listener.Start();
 
             listener.BeginAcceptSocket(ListenerBeginCall, listener);
-           
-            Console.WriteLine("Hello World!");
+
+            var addressLst = modbus.GenerateModbusAddressList( ModbusExtend.GetModbusAddressType.REG_ALL);
+            foreach (var str in addressLst)
+                Console.WriteLine(str);
             Console.ReadLine();
         }
 
