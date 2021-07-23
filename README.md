@@ -6,4 +6,4 @@ Modbus SerialPort<br/>
 Modbus TCP<br/>
 Modbus RTU/ASCII Over TCP<br/>
 安装:<br />
-Install-Package ModbusHelper -Version 1.0.1
+Install-Package ModbusHelper -Version 1.1.0
