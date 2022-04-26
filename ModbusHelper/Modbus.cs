@@ -68,12 +68,17 @@ namespace ModbusHelper
                 return _recieveData;
             var idTmp = BitConverter.GetBytes((UInt16)id);
             var lenTmp = BitConverter.GetBytes((ushort)(_recieveData.Length - 2));
-            byte[] backArray = new byte[6 + _recieveData.Length - 2];
+            
+            int dataLen = _recieveData.Length - 2;
+            if (_recieveData[1] == 0x06)
+                dataLen = _recieveData.Length;
+            var backArray = new byte[6 + dataLen];
+            
             backArray[0] = idTmp[1];
             backArray[1] = idTmp[0];
             backArray[4] = lenTmp[1];
             backArray[5] = lenTmp[0];
-            Array.Copy(_recieveData, 0, backArray, 6, _recieveData.Length - 2);
+            Array.Copy(_recieveData, 0, backArray, 6, dataLen);
             return backArray;
         }
         /// <summary>
