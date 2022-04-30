@@ -121,7 +121,21 @@ namespace ModbusHelper.Models
             Array.Copy(dataArray, array, array.Length);
             return array;
         }
-
+        public void SetValue(byte[] bytes)
+        {
+            switch(DataMemLen)
+            {
+                case 2:
+                    BaseSetValue2(bytes);
+                    break;
+                case 4:
+                    BaseSetValue4(bytes);
+                    break;
+                case 8:
+                    BaseSetValue4(bytes);
+                    break;
+            }
+        }
         public void SetValue(Int16 val)
         {
             BaseSetValue2(BitConverter.GetBytes(val));
