@@ -46,10 +46,10 @@ namespace ModbusHelper
         {
             isModbusTcp = false;
             iD = 0;
-            if (cmd.Length < 6)
+            if (cmd.Length <= 8)
                 return cmd;
-            
-            if(cmd[2]==0x00&&cmd[3]==0x00)
+
+            if (cmd[2]==0x00&&cmd[3]==0x00)
             { 
                 iD = cmd[0] * 256 + cmd[1];
                 int tmpLen = cmd[4] * 256 + cmd[5];
